@@ -33,11 +33,11 @@ export const signin = async (req, res, next) => {
     next(errorHandler(400, "All fields required"));
   }
   try {
-    const validuser = await User.findOne({ email });
-    if (!validuser) {
+    const validUser = await User.findOne({ email });
+    if (!validUser) {
       return next(errorHandler(404, "User not found"));
     }
-    const validPassword = bcryptjs.compareSync(password, validuser.password);
+    const validPassword = bcryptjs.compareSync(password, validUser.password);
 
     if (!validPassword) {
       return next(errorHandler(400, "Invalid password"));
@@ -45,12 +45,13 @@ export const signin = async (req, res, next) => {
 
     const token = jwt.sign(
       {
-        id: validuser._id,
+        id: validUser._id,
+        isAdmin: validUser.isAdmin,
       },
       process.env.JWT_SECRET
     );
 
-    const { password: pass, ...rest } = validuser._doc;
+    const { password: pass, ...rest } = validUser._doc;
 
     res
       .status(200)
@@ -69,7 +70,10 @@ export const google = async (req, res, next) => {
     const user = await User.findOne({ email });
 
     if (user) {
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+      const token = jwt.sign(
+        { id: user._id, isAdmin: user.isAdmin },
+        process.env.JWT_SECRET
+      );
       const { password, ...rest } = user._doc;
       res
         .status(200)
@@ -91,7 +95,7 @@ export const google = async (req, res, next) => {
         profilePicture: googlePhotoUrl,
       });
       await newUser.save();
-      const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
+      const token = jwt.sign({ id: newUser._id, isAdmin: newUser.isAdmin }, process.env.JWT_SECRET);
 
       const { password, ...rest } = newUser._doc;
       res
