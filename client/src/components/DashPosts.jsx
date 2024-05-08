@@ -1,21 +1,20 @@
-import { Button, Modal, Table } from "flowbite-react";
-import React, { useEffect, useState } from "react";
+import { Modal, Table, Button } from "flowbite-react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
+import { set } from "mongoose";
 
-const DashPosts = () => {
+export default function DashPosts() {
   const { currentUser } = useSelector((state) => state.user);
   const [userPosts, setUserPosts] = useState([]);
   const [showMore, setShowMore] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [postIdToDelete, setPostIdToDelete] = useState("");
-
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         const res = await fetch(`/api/post/getposts?userId=${currentUser._id}`);
-
         const data = await res.json();
         if (res.ok) {
           setUserPosts(data.posts);
@@ -59,7 +58,7 @@ const DashPosts = () => {
           method: "DELETE",
         }
       );
-      const data = await res.json;
+      const data = await res.json();
       if (!res.ok) {
         console.log(data.message);
       } else {
@@ -67,8 +66,11 @@ const DashPosts = () => {
           prev.filter((post) => post._id !== postIdToDelete)
         );
       }
-    } catch (error) {}
+    } catch (error) {
+      console.log(error.message);
+    }
   };
+
   return (
     <div className="table-auto overflow-x-scroll md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-500">
       {currentUser.isAdmin && userPosts.length > 0 ? (
@@ -84,8 +86,8 @@ const DashPosts = () => {
                 <span>Edit</span>
               </Table.HeadCell>
             </Table.Head>
-            {userPosts.map((post) => (
-              <Table.Body className="divide-y">
+            {userPosts.map((post, index) => (
+              <Table.Body className="divide-y" key={index}>
                 <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
                   <Table.Cell>
                     {new Date(post.updatedAt).toLocaleDateString()}
@@ -110,20 +112,19 @@ const DashPosts = () => {
                   <Table.Cell>{post.category}</Table.Cell>
                   <Table.Cell>
                     <span
-                      className="font-medium text-red-500 hover:underline cursor-pointer"
                       onClick={() => {
                         setShowModal(true);
                         setPostIdToDelete(post._id);
                       }}
+                      className="font-medium text-red-500 hover:underline cursor-pointer"
                     >
-                      {" "}
                       Delete
                     </span>
                   </Table.Cell>
                   <Table.Cell>
                     <Link
-                      to={`/update-post/${post._id}`}
                       className="text-teal-500 hover:underline"
+                      to={`/update-post/${post._id}`}
                     >
                       <span>Edit</span>
                     </Link>
@@ -135,16 +136,15 @@ const DashPosts = () => {
           {showMore && (
             <button
               onClick={handleShowMore}
-              className="w-full text-teal-500 self-auto text-sm py-7"
+              className="w-full text-teal-500 self-center text-sm py-7"
             >
               Show more
             </button>
           )}
         </>
       ) : (
-        <p>you Have no Post yet ! </p>
+        <p>You have no posts yet!</p>
       )}
-
       <Modal
         show={showModal}
         onClose={() => setShowModal(false)}
@@ -171,6 +171,4 @@ const DashPosts = () => {
       </Modal>
     </div>
   );
-};
-
-export default DashPosts;
+}
