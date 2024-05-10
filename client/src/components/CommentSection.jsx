@@ -55,7 +55,6 @@ const CommentSection = ({ postId }) => {
     };
     getComments();
   }, [postId]);
-  console.log(comments);
 
   const handleLike = async (commentId) => {
     try {
@@ -80,6 +79,18 @@ const CommentSection = ({ postId }) => {
           )
         );
       }
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  const handleEdit = async (comment, editedContent) => {
+    try {
+      setComments(
+        comments.map((e) => 
+          e._id === comment._id ? { ...e, content: editedContent } : e
+        )
+      );
     } catch (error) {
       console.log(error.message);
     }
@@ -152,7 +163,12 @@ const CommentSection = ({ postId }) => {
             </div>
           </div>
           {comments.map((comment) => (
-            <Comment key={comment._id} comment={comment} onLike={handleLike} />
+            <Comment
+              key={comment._id}
+              comment={comment}
+              onLike={handleLike}
+              onEdit={handleEdit}
+            />
           ))}
         </>
       )}
